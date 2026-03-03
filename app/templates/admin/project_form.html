@@ -1,0 +1,176 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{% if project %}Edit Project{% else %}New Project{% endif %}{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>{% if project %}Edit Project{% else %}New Project{% endif %}</h1>
+    <div class="admin-header-actions">
+        <a href="/admin/projects" class="admin-btn admin-btn-secondary">← Back</a>
+    </div>
+</div>
+
+<div x-data="projectForm()" class="admin-card" style="max-width:900px;">
+    <form @submit.prevent="saveProject">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="admin-form-group" style="grid-column:1/3;">
+                <label class="admin-label">Title</label>
+                <input type="text" class="admin-input" x-model="form.title" required placeholder="Project title">
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Slug</label>
+                <input type="text" class="admin-input" x-model="form.slug" placeholder="auto-generated-from-title">
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Status</label>
+                <select class="admin-select" x-model="form.status">
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="admin-form-group">
+            <label class="admin-label">Short Description</label>
+            <textarea class="admin-textarea" x-model="form.short_description" rows="2"
+                placeholder="Brief description for project cards..."></textarea>
+        </div>
+
+        <div class="admin-form-group">
+            <label class="admin-label">Problem Statement</label>
+            <textarea class="admin-textarea" x-model="form.problem_statement" rows="3"
+                placeholder="What problem does this solve?"></textarea>
+        </div>
+
+        <div class="admin-form-group">
+            <label class="admin-label">Full Description (Markdown)</label>
+            <textarea class="admin-textarea" x-model="form.full_description" rows="10"
+                placeholder="# Project Details&#10;&#10;Write your full description in Markdown..."
+                style="font-family:'JetBrains Mono',monospace;font-size:0.85rem;"></textarea>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="admin-form-group">
+                <label class="admin-label">Tech Stack (comma-separated)</label>
+                <input type="text" class="admin-input" x-model="techStackInput" placeholder="Python, FastAPI, React">
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Video Embed URL (YouTube/Vimeo)</label>
+                <input type="url" class="admin-input" x-model="form.video_embed_url"
+                    placeholder="https://youtube.com/embed/...">
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="admin-form-group">
+                <label class="admin-label">Cover Image ID</label>
+                <div style="display:flex;gap:0.5rem;">
+                    <input type="text" class="admin-input" x-model="form.cover_media_id" placeholder="Media ID">
+                    <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm"
+                        onclick="window.open('/admin/media?picker=1','media','width=800,height=600')">Browse</button>
+                </div>
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Video Media ID</label>
+                <div style="display:flex;gap:0.5rem;">
+                    <input type="text" class="admin-input" x-model="form.video_media_id"
+                        placeholder="Media ID (optional)">
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-form-group">
+            <label class="admin-label">Gallery (media IDs, comma-separated)</label>
+            <input type="text" class="admin-input" x-model="galleryInput" placeholder="id1, id2, id3">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="admin-form-group">
+                <label class="admin-label">SEO Title</label>
+                <input type="text" class="admin-input" x-model="seoTitle" placeholder="Browser tab title">
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">SEO Description</label>
+                <input type="text" class="admin-input" x-model="seoDescription" placeholder="Meta description">
+            </div>
+        </div>
+
+        <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
+            <button type="submit" class="admin-btn admin-btn-primary">
+                {% if project %}Update Project{% else %}Create Project{% endif %}
+            </button>
+            {% if project %}
+            <a href="/projects/{{ project.slug }}" target="_blank" class="admin-btn admin-btn-secondary">Preview</a>
+            {% endif %}
+        </div>
+
+        <div x-show="message" x-text="message"
+            style="margin-top:1rem;padding:0.75rem;border-radius:8px;font-size:0.85rem;"
+            :style="messageType === 'success' ? 'background:rgba(34,197,94,0.1);color:#22c55e;' : 'background:rgba(239,68,68,0.1);color:#ef4444;'">
+        </div>
+    </form>
+</div>
+
+<script>
+    function projectForm() {
+        const existingData = {{ project_json | safe if project_json else '{}'
+    }};
+    return {
+        form: {
+            title: existingData.title || '',
+            slug: existingData.slug || '',
+            short_description: existingData.short_description || '',
+            full_description: existingData.full_description || '',
+            problem_statement: existingData.problem_statement || '',
+            status: existingData.status || 'draft',
+            cover_media_id: existingData.cover_media_id || '',
+            video_media_id: existingData.video_media_id || '',
+            video_embed_url: existingData.video_embed_url || '',
+        },
+        techStackInput: (existingData.tech_stack || []).join(', '),
+        galleryInput: (existingData.gallery || []).join(', '),
+        seoTitle: (existingData.metadata || {}).title || '',
+        seoDescription: (existingData.metadata || {}).description || '',
+        message: '',
+        messageType: '',
+
+        async saveProject() {
+            const data = {
+                ...this.form,
+                tech_stack: this.techStackInput.split(',').map(s => s.trim()).filter(Boolean),
+                gallery: this.galleryInput.split(',').map(s => s.trim()).filter(Boolean),
+                metadata: { title: this.seoTitle, description: this.seoDescription },
+            };
+
+            const isEdit = !!existingData.id;
+            const url = isEdit
+                ? `/admin/api/projects/${existingData.id}`
+                : '/admin/api/projects';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            try {
+                const resp = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+                const result = await resp.json();
+                if (resp.ok) {
+                    this.message = isEdit ? 'Project updated!' : 'Project created!';
+                    this.messageType = 'success';
+                    if (!isEdit && result.id) {
+                        setTimeout(() => window.location.href = `/admin/projects/${result.id}/edit`, 1000);
+                    }
+                } else {
+                    this.message = result.detail || 'Error saving project.';
+                    this.messageType = 'error';
+                }
+            } catch (e) {
+                this.message = 'Network error.';
+                this.messageType = 'error';
+            }
+        }
+    };
+}
+</script>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Contact — {{ site_title | default('Portfolio') }}{% endblock %}
+{% block meta_description %}Get in touch with me{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 8rem;">
+    <div class="container-narrow">
+        <div class="section-header">
+            <h1>Get In <span class="text-gradient">Touch</span></h1>
+            <p>Have a project idea or want to collaborate? Drop me a message!</p>
+        </div>
+
+        {% if message %}
+        <div class="card"
+            style="padding:1.5rem;margin-bottom:2rem;border-color:rgba(99,202,110,0.3);background:rgba(99,202,110,0.05);">
+            <p style="color:#63ca6e;">✓ {{ message }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Contact blocks from DB -->
+        {% for block in blocks %}
+        {% if block.type == 'text_block' %}
+        {% include "blocks/text_block.html" %}
+        {% endif %}
+        {% endfor %}
+
+        <!-- Contact Form -->
+        <div class="card" style="padding:2rem;margin-top:2rem;">
+            <form method="post" action="/contact" id="contactForm">
+                <div class="form-group">
+                    <label class="form-label" for="name">Your Name</label>
+                    <input type="text" id="name" name="name" class="form-input" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-input" required
+                        placeholder="john@example.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" class="form-input" required
+                        placeholder="Project idea">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="message_text">Message</label>
+                    <textarea id="message_text" name="message" class="form-textarea" required
+                        placeholder="Tell me about your project..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">
+                    Send Message
+                </button>
+            </form>
+        </div>
+
+        {% if contact_email %}
+        <p style="text-align:center;margin-top:2rem;color:var(--text-muted);font-size:0.9rem;">
+            Or reach me directly at <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+        </p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

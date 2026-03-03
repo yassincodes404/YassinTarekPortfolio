@@ -1,0 +1,54 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Activity Log{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Activity Log</h1>
+</div>
+
+<div class="admin-card">
+    <div class="activity-list">
+        {% for act in activities %}
+        <div class="activity-item">
+            <span class="activity-icon">
+                {% if act.action == 'created' %}✨
+                {% elif act.action == 'updated' %}✏️
+                {% elif act.action == 'published' %}🚀
+                {% elif act.action == 'uploaded' %}📤
+                {% elif act.action == 'deleted' %}🗑️
+                {% elif act.action == 'contact_form' %}💬
+                {% elif act.action == 'login' %}🔐
+                {% elif act.action == 'settings_updated' %}⚙️
+                {% elif act.action == 'restored' %}🔄
+                {% else %}📌{% endif %}
+            </span>
+            <span class="activity-text">
+                <strong>{{ act.action | replace('_', ' ') | title }}</strong>
+                {{ act.entity_type }}
+                {% if act.details %}
+                {% if act.details.title %} — {{ act.details.title }}{% endif %}
+                {% if act.details.name %} from {{ act.details.name }}{% endif %}
+                {% endif %}
+            </span>
+            <span class="activity-time">{{ act.created_at.strftime('%b %d, %Y %H:%M') }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not activities %}
+    <div style="text-align:center;padding:3rem;color:var(--admin-text-muted);">
+        <p>No activity recorded yet.</p>
+    </div>
+    {% endif %}
+
+    {% if total_pages > 1 %}
+    <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1.5rem;">
+        {% for p in range(1, total_pages + 1) %}
+        <a href="/admin/activity?page={{ p }}"
+            class="admin-btn admin-btn-sm {% if p == page %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">{{
+            p }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

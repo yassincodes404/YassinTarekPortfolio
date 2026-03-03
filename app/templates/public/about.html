@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}About — {{ site_title | default('Portfolio') }}{% endblock %}
+{% block meta_description %}Learn more about me and my work{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 8rem;">
+    <div class="container-narrow">
+        <div class="section-header">
+            <h1>About <span class="text-gradient">Me</span></h1>
+        </div>
+
+        {% for block in blocks %}
+        {% if block.type == 'text_block' %}
+        {% include "blocks/text_block.html" %}
+        {% elif block.type == 'two_column' %}
+        {% include "blocks/two_column.html" %}
+        {% elif block.type == 'image_banner' %}
+        {% include "blocks/image_banner.html" %}
+        {% elif block.type == 'custom_html' %}
+        {% include "blocks/custom_html.html" %}
+        {% endif %}
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

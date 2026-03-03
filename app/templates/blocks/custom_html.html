@@ -1,0 +1,5 @@
+<!-- Custom HTML Block -->
+<section class="section" {% if block.styles %}style="{% for k,v in block.styles.items() %}{{ k }}: {{ v }};{% endfor %}"
+    {% endif %}>
+    {{ block.props.html | default('') | safe }}
+</section>

@@ -1,0 +1,9 @@
+<!-- Text Block -->
+<section class="section" {% if block.styles %}style="{% for k,v in block.styles.items() %}{{ k }}: {{ v }};{% endfor %}"
+    {% endif %}>
+    <div class="container-narrow">
+        <div class="prose">
+            {{ block.props.content | markdown | safe }}
+        </div>
+    </div>
+</section>

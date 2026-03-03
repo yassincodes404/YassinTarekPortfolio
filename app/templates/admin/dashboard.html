@@ -1,0 +1,64 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Dashboard</h1>
+    <div class="admin-header-actions">
+        <a href="/admin/projects/new" class="admin-btn admin-btn-primary">+ New Project</a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">📁</div>
+        <div class="stat-value">{{ stats.published_projects }}</div>
+        <div class="stat-label">Published Projects</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📝</div>
+        <div class="stat-value">{{ stats.draft_projects }}</div>
+        <div class="stat-label">Draft Projects</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">🖼️</div>
+        <div class="stat-value">{{ stats.media_count }}</div>
+        <div class="stat-label">Media Files</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📄</div>
+        <div class="stat-value">{{ stats.pages_count }}</div>
+        <div class="stat-label">Pages</div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="admin-card" style="margin-top:1rem;">
+    <h3 style="margin-bottom:1rem;font-size:1rem;">Recent Activity</h3>
+    {% if recent_activity %}
+    <div class="activity-list">
+        {% for act in recent_activity %}
+        <div class="activity-item">
+            <span class="activity-icon">
+                {% if act.action == 'created' %}✨
+                {% elif act.action == 'updated' %}✏️
+                {% elif act.action == 'published' %}🚀
+                {% elif act.action == 'uploaded' %}📤
+                {% elif act.action == 'deleted' %}🗑️
+                {% elif act.action == 'contact_form' %}💬
+                {% else %}📌{% endif %}
+            </span>
+            <span class="activity-text">
+                <strong>{{ act.action | title }}</strong> {{ act.entity_type }}
+                {% if act.details and act.details.title %} — {{ act.details.title }}{% endif %}
+            </span>
+            <span class="activity-time">{{ act.created_at.strftime('%b %d, %H:%M') }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:var(--admin-text-muted);font-size:0.9rem;">No activity yet. Start by creating a project!</p>
+    {% endif %}
+</div>
+{% endblock %}

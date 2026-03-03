@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.title }} — {{ site_title | default('Portfolio') }}{% endblock %}
+{% block meta_description %}{{ project.short_description | truncate(160) }}{% endblock %}
+
+{% block meta_extra %}
+<meta property="og:title" content="{{ project.title }}">
+<meta property="og:description" content="{{ project.short_description | truncate(200) }}">
+{% if project.cover_media %}
+<meta property="og:image" content="{{ project.cover_media.url }}">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- Project Hero -->
+<section class="project-hero">
+    <div class="container">
+        <a href="/projects" class="btn btn-secondary btn-sm" style="margin-bottom:1.5rem;">← Back to Projects</a>
+        <h1 class="animate-in">{{ project.title }}</h1>
+        <p class="subtitle animate-in" style="color:var(--text-secondary);font-size:1.15rem;margin-top:0.75rem;">{{
+            project.short_description }}</p>
+
+        {% if project.tech_stack %}
+        <div class="tags animate-in" style="margin-top:1.5rem;">
+            {% for tag in project.tech_stack %}
+            <span class="tag">{{ tag }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if project.cover_media %}
+        <img src="{{ project.cover_media.url }}" alt="{{ project.title }}" class="cover-image animate-in">
+        {% endif %}
+    </div>
+</section>
+
+<!-- Project Content -->
+<section class="project-content">
+    <div class="container-narrow">
+        {% if project.problem_statement %}
+        <div class="card" style="padding:2rem;margin-bottom:2rem;">
+            <h3 style="margin-bottom:0.75rem;">🎯 Problem Statement</h3>
+            <div class="prose">
+                {{ project.problem_statement | markdown | safe }}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if project.full_description %}
+        <div class="prose">
+            {{ project.full_description | markdown | safe }}
+        </div>
+        {% endif %}
+
+        {% if project.video_embed_url %}
+        <div class="video-container" style="margin:3rem 0;">
+            <iframe src="{{ project.video_embed_url }}" frameborder="0" allowfullscreen></iframe>
+        </div>
+        {% elif project.video_media %}
+        <div class="video-container" style="margin:3rem 0;">
+            <video controls preload="metadata">
+                <source src="{{ project.video_media.url }}" type="{{ project.video_media.mime }}">
+            </video>
+        </div>
+        {% endif %}
+
+        {% if gallery_media %}
+        <h3 style="margin-top:3rem;margin-bottom:1rem;">📸 Gallery</h3>
+        <div class="gallery-grid">
+            {% for media in gallery_media %}
+            <img src="{{ media.url }}" alt="{{ media.original_filename }}" loading="lazy">
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Navigation to other projects -->
+<section class="section">
+    <div class="container" style="text-align:center;">
+        <a href="/projects" class="btn btn-primary">Browse All Projects</a>
+    </div>
+</section>
+{% endblock %}

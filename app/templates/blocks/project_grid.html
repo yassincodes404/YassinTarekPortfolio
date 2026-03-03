@@ -1,0 +1,40 @@
+<!-- Project Grid Block -->
+<section class="section" {% if block.styles %}style="{% for k,v in block.styles.items() %}{{ k }}: {{ v }};{% endfor %}"
+    {% endif %}>
+    <div class="container">
+        <div class="section-header">
+            <h2>Featured <span class="text-gradient">Projects</span></h2>
+            <p>Explore my latest work and creative endeavors</p>
+        </div>
+        {% if projects %}
+        <div class="project-grid">
+            {% for project in projects %}
+            <a href="/projects/{{ project.slug }}" class="card project-card animate-in" style="text-decoration:none;">
+                {% if project.cover_media %}
+                <img src="{{ project.cover_media.thumbnail_url or project.cover_media.url }}" alt="{{ project.title }}"
+                    class="card-image" loading="lazy">
+                {% else %}
+                <div class="card-image-placeholder">📁</div>
+                {% endif %}
+                <div class="card-body">
+                    <h3 class="card-title">{{ project.title }}</h3>
+                    <p class="card-text">{{ project.short_description | truncate(120) }}</p>
+                    {% if project.tech_stack %}
+                    <div class="tags">
+                        {% for tag in project.tech_stack[:4] %}
+                        <span class="tag">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="icon">🚀</div>
+            <p>Projects coming soon...</p>
+        </div>
+        {% endif %}
+    </div>
+</section>

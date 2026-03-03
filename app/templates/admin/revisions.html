@@ -1,0 +1,49 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Revisions{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Revisions</h1>
+</div>
+
+<div class="admin-card">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Entity</th>
+                <th>Type</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rev in revisions %}
+            <tr>
+                <td class="title-cell">
+                    {{ rev.entity_type | title }}
+                    <span style="color:var(--admin-text-muted);font-family:monospace;font-size:0.75rem;">{{
+                        rev.entity_id[:8] }}...</span>
+                </td>
+                <td><span class="badge badge-draft">{{ rev.entity_type }}</span></td>
+                <td style="color:var(--admin-text-muted);font-size:0.8rem;">{{ rev.created_at.strftime('%b %d, %Y
+                    %H:%M') }}</td>
+                <td>
+                    <button class="admin-btn admin-btn-secondary admin-btn-sm"
+                        hx-post="/admin/api/revisions/{{ rev.id }}/restore"
+                        hx-confirm="Restore this revision? Current data will be overwritten." hx-swap="none"
+                        hx-on::after-request="showToast('Revision restored!', 'success'); setTimeout(() => location.reload(), 1000)">
+                        Restore
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if not revisions %}
+    <div style="text-align:center;padding:3rem;color:var(--admin-text-muted);">
+        <p>No revisions yet. Revisions are created when you publish content.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

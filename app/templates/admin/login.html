@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Portfolio Admin</title>
+    <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+
+<body class="admin-body login-page">
+    <div class="login-card">
+        <h1>Welcome Back</h1>
+        <p>Sign in to manage your portfolio</p>
+
+        {% if error %}
+        <div class="login-error">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="/admin/login">
+            <div class="admin-form-group">
+                <label class="admin-label" for="email">Email</label>
+                <input type="email" id="email" name="email" class="admin-input" required placeholder="admin@example.com"
+                    autocomplete="email">
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="admin-input" required placeholder="••••••••"
+                    autocomplete="current-password">
+            </div>
+            <button type="submit" class="admin-btn admin-btn-primary"
+                style="width:100%;justify-content:center;padding:0.85rem;">
+                Sign In
+            </button>
+        </form>
+
+        <p style="text-align:center;margin-top:1.5rem;">
+            <a href="/" style="font-size:0.85rem;color:var(--admin-text-muted);">← Back to site</a>
+        </p>
+    </div>
+</body>
+
+</html>

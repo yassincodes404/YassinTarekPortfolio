@@ -1,0 +1,36 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Pages{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Pages</h1>
+</div>
+
+<div class="admin-card">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Slug</th>
+                <th>Blocks</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for page in pages %}
+            <tr>
+                <td class="title-cell">{{ page.title }}</td>
+                <td style="color:var(--admin-text-muted);font-family:monospace;font-size:0.8rem;">/{{ page.slug }}</td>
+                <td>{{ (page.blocks or []) | length }} blocks</td>
+                <td><span class="badge badge-{{ page.status }}">{{ page.status }}</span></td>
+                <td>
+                    <a href="/admin/pages/{{ page.id }}/edit"
+                        class="admin-btn admin-btn-secondary admin-btn-sm">Edit</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

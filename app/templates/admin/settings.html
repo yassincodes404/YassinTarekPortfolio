@@ -1,0 +1,154 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Site Settings</h1>
+</div>
+
+<form x-data="settingsForm()" @submit.prevent="saveSettings">
+    <div class="settings-grid">
+        <!-- General Settings -->
+        <div class="admin-card">
+            <h3 style="margin-bottom:1rem;font-size:1rem;">General</h3>
+            <div class="admin-form-group">
+                <label class="admin-label">Site Title</label>
+                <input class="admin-input" x-model="form.site_title">
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Site Description</label>
+                <textarea class="admin-textarea" x-model="form.site_description" rows="2"></textarea>
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Contact Email</label>
+                <input class="admin-input" type="email" x-model="form.contact_email">
+            </div>
+        </div>
+
+        <!-- Theme Settings -->
+        <div class="admin-card">
+            <h3 style="margin-bottom:1rem;font-size:1rem;">Theme</h3>
+            <div class="admin-form-group">
+                <label class="admin-label">Accent Color</label>
+                <div class="color-picker-group">
+                    <input type="color" x-model="theme.accent_color">
+                    <input class="admin-input" x-model="theme.accent_color" style="max-width:120px;">
+                </div>
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Accent Hover Color</label>
+                <div class="color-picker-group">
+                    <input type="color" x-model="theme.accent_color_hover">
+                    <input class="admin-input" x-model="theme.accent_color_hover" style="max-width:120px;">
+                </div>
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Heading Font</label>
+                <select class="admin-select" x-model="theme.font_heading">
+                    <option value="Inter">Inter</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Outfit">Outfit</option>
+                    <option value="Poppins">Poppins</option>
+                    <option value="Space Grotesk">Space Grotesk</option>
+                </select>
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Body Font</label>
+                <select class="admin-select" x-model="theme.font_body">
+                    <option value="Inter">Inter</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Outfit">Outfit</option>
+                    <option value="Poppins">Poppins</option>
+                    <option value="Space Grotesk">Space Grotesk</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Social Links -->
+        <div class="admin-card">
+            <h3 style="margin-bottom:1rem;font-size:1rem;">Social Links</h3>
+            <div class="admin-form-group">
+                <label class="admin-label">GitHub URL</label>
+                <input class="admin-input" x-model="social.github" placeholder="https://github.com/...">
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">LinkedIn URL</label>
+                <input class="admin-input" x-model="social.linkedin" placeholder="https://linkedin.com/in/...">
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Twitter URL</label>
+                <input class="admin-input" x-model="social.twitter" placeholder="https://twitter.com/...">
+            </div>
+        </div>
+
+        <!-- Analytics -->
+        <div class="admin-card">
+            <h3 style="margin-bottom:1rem;font-size:1rem;">Analytics & Integration</h3>
+            <div class="admin-form-group">
+                <label class="admin-label">Analytics Snippet (HTML)</label>
+                <textarea class="admin-textarea" x-model="form.analytics_snippet" rows="4"
+                    style="font-family:monospace;font-size:0.85rem;"
+                    placeholder="Paste Google Analytics or Plausible snippet..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top:1.5rem;display:flex;gap:0.75rem;">
+        <button type="submit" class="admin-btn admin-btn-primary">Save Settings</button>
+    </div>
+
+    <div x-show="message" x-text="message"
+        style="margin-top:1rem;padding:0.75rem;border-radius:8px;font-size:0.85rem;background:rgba(34,197,94,0.1);color:#22c55e;">
+    </div>
+</form>
+
+<script>
+    function settingsForm() {
+        const s = {{ settings_json | safe
+    }};
+    const cssVars = (() => { try { return JSON.parse(s.css_vars || '{}'); } catch { return {}; } })();
+    const socialLinks = (() => { try { return JSON.parse(s.social_links || '{}'); } catch { return {}; } })();
+    return {
+        form: {
+            site_title: s.site_title || '',
+            site_description: s.site_description || '',
+            contact_email: s.contact_email || '',
+            analytics_snippet: s.analytics_snippet || '',
+        },
+        theme: {
+            accent_color: cssVars.accent_color || '#6366f1',
+            accent_color_hover: cssVars.accent_color_hover || '#4f46e5',
+            font_heading: cssVars.font_heading || 'Inter',
+            font_body: cssVars.font_body || 'Inter',
+        },
+        social: {
+            github: socialLinks.github || '',
+            linkedin: socialLinks.linkedin || '',
+            twitter: socialLinks.twitter || '',
+        },
+        message: '',
+
+        async saveSettings() {
+            const settings = {
+                ...this.form,
+                css_vars: JSON.stringify(this.theme),
+                social_links: JSON.stringify(this.social),
+            };
+            try {
+                const resp = await fetch('/admin/api/settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings),
+                });
+                if (resp.ok) {
+                    this.message = 'Settings saved!';
+                    setTimeout(() => this.message = '', 3000);
+                }
+            } catch (e) {
+                this.message = 'Error saving settings.';
+            }
+        }
+    };
+}
+</script>
+{% endblock %}

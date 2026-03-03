@@ -1,0 +1,132 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Media Library{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Media Library</h1>
+    <div class="admin-header-actions">
+        <button class="admin-btn admin-btn-danger admin-btn-sm" id="bulkDeleteBtn" style="display:none;"
+            onclick="bulkDelete()">Delete Selected</button>
+    </div>
+</div>
+
+<!-- Upload Zone -->
+<div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+    <div class="icon">📁</div>
+    <p>Drag & drop files here or click to upload</p>
+    <p style="font-size:0.75rem;margin-top:0.5rem;color:var(--admin-text-muted);">Images (JPG, PNG, WebP) up to 10MB ·
+        Videos (MP4, WebM) up to 200MB</p>
+</div>
+<input type="file" id="fileInput" multiple accept="image/*,video/*" style="display:none;"
+    onchange="uploadFiles(this.files)">
+
+<!-- Upload Progress -->
+<div id="uploadProgress" style="display:none;margin-bottom:1rem;">
+    <div style="background:var(--admin-card);border:1px solid var(--admin-border);border-radius:8px;padding:1rem;">
+        <p style="font-size:0.85rem;color:var(--admin-text-secondary);">Uploading... <span id="uploadCount"></span></p>
+        <div style="background:var(--admin-border);border-radius:4px;height:6px;margin-top:0.5rem;overflow:hidden;">
+            <div id="uploadBar"
+                style="background:var(--admin-accent);height:100%;width:0%;transition:width 0.3s;border-radius:4px;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Media Grid -->
+<div class="admin-card">
+    <div class="media-grid" id="mediaGrid">
+        {% for item in media_list %}
+        <div class="media-item" data-id="{{ item.id }}" onclick="toggleSelect(this)">
+            <div class="media-check">✓</div>
+            {% if item.thumbnail_url %}
+            <img src="{{ item.thumbnail_url }}" alt="{{ item.original_filename }}" loading="lazy">
+            {% elif 'image' in item.mime %}
+            <img src="{{ item.url }}" alt="{{ item.original_filename }}" loading="lazy">
+            {% else %}
+            <div
+                style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--admin-card);font-size:2rem;">
+                🎥</div>
+            {% endif %}
+            <div class="media-overlay">
+                <div>{{ item.original_filename | truncate(20) }}</div>
+                <div>{{ (item.size_bytes / 1024) | int }}KB · {{ item.uploaded_at.strftime('%b %d') }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not media_list %}
+    <div style="text-align:center;padding:3rem;color:var(--admin-text-muted);">
+        <p style="font-size:2rem;">🖼️</p>
+        <p>No media uploaded yet.</p>
+    </div>
+    {% endif %}
+
+    {% if total_pages > 1 %}
+    <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1.5rem;">
+        {% for p in range(1, total_pages + 1) %}
+        <a href="/admin/media?page={{ p }}"
+            class="admin-btn admin-btn-sm {% if p == page %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">{{
+            p }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    const selectedIds = new Set();
+
+    function toggleSelect(el) {
+        const id = el.dataset.id;
+        el.classList.toggle('selected');
+        if (el.classList.contains('selected')) {
+            selectedIds.add(id);
+        } else {
+            selectedIds.delete(id);
+        }
+        document.getElementById('bulkDeleteBtn').style.display = selectedIds.size > 0 ? 'inline-flex' : 'none';
+    }
+
+    async function uploadFiles(files) {
+        const progress = document.getElementById('uploadProgress');
+        const bar = document.getElementById('uploadBar');
+        const count = document.getElementById('uploadCount');
+        progress.style.display = 'block';
+
+        for (let i = 0; i < files.length; i++) {
+            count.textContent = `${i + 1} / ${files.length}`;
+            bar.style.width = `${((i + 1) / files.length) * 100}%`;
+
+            const formData = new FormData();
+            formData.append('file', files[i]);
+
+            try {
+                const resp = await fetch('/admin/api/media/upload', { method: 'POST', body: formData });
+                if (!resp.ok) {
+                    const err = await resp.json();
+                    showToast(err.detail || 'Upload failed', 'error');
+                }
+            } catch (e) {
+                showToast('Upload error', 'error');
+            }
+        }
+
+        progress.style.display = 'none';
+        location.reload();
+    }
+
+    async function bulkDelete() {
+        if (!confirm(`Delete ${selectedIds.size} file(s)?`)) return;
+        for (const id of selectedIds) {
+            await fetch(`/admin/api/media/${id}`, { method: 'DELETE' });
+        }
+        location.reload();
+    }
+
+    // Drag & Drop
+    const zone = document.getElementById('uploadZone');
+    ['dragenter', 'dragover'].forEach(e => zone.addEventListener(e, (ev) => { ev.preventDefault(); zone.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(e => zone.addEventListener(e, (ev) => { ev.preventDefault(); zone.classList.remove('dragover'); }));
+    zone.addEventListener('drop', (ev) => { uploadFiles(ev.dataTransfer.files); });
+</script>
+{% endblock %}

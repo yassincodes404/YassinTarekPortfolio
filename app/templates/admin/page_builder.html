@@ -1,0 +1,248 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Page Builder — {{ page.title }}{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Page Builder: {{ page.title }}</h1>
+    <div class="admin-header-actions">
+        <a href="/admin/pages" class="admin-btn admin-btn-secondary">← Back</a>
+        <button class="admin-btn admin-btn-primary" onclick="savePageBlocks()">Save Page</button>
+        <a href="/{{ page.slug }}" target="_blank" class="admin-btn admin-btn-secondary">Preview</a>
+    </div>
+</div>
+
+<div class="builder-layout" x-data="pageBuilder()">
+    <!-- Block Palette -->
+    <div class="builder-palette">
+        <h3>Add Block</h3>
+        <template x-for="bt in blockTypes" :key="bt.type">
+            <div class="block-type" @click="addBlock(bt.type)" :title="bt.desc">
+                <span x-text="bt.icon"></span>
+                <span x-text="bt.label"></span>
+            </div>
+        </template>
+    </div>
+
+    <!-- Canvas -->
+    <div class="builder-canvas" id="builderCanvas">
+        <template x-if="blocks.length === 0">
+            <div style="text-align:center;padding:4rem;color:var(--admin-text-muted);">
+                <p style="font-size:2rem;">📄</p>
+                <p>Click a block type to add it</p>
+            </div>
+        </template>
+        <template x-for="(block, index) in blocks" :key="block.id">
+            <div class="block-item" :class="{'selected': selectedIndex === index}" @click="selectedIndex = index">
+                <div class="block-info">
+                    <span class="block-handle" style="cursor:grab;">⠿</span>
+                    <span x-text="getBlockLabel(block.type)"></span>
+                    <span style="font-size:0.75rem;color:var(--admin-text-muted);"
+                        x-text="getBlockSummary(block)"></span>
+                </div>
+                <div style="display:flex;gap:0.5rem;">
+                    <button class="admin-btn admin-btn-secondary admin-btn-sm" @click.stop="moveBlock(index, -1)"
+                        :disabled="index === 0">↑</button>
+                    <button class="admin-btn admin-btn-secondary admin-btn-sm" @click.stop="moveBlock(index, 1)"
+                        :disabled="index === blocks.length - 1">↓</button>
+                    <button class="admin-btn admin-btn-danger admin-btn-sm" @click.stop="removeBlock(index)">×</button>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Inspector -->
+    <div class="builder-inspector">
+        <h3>Block Properties</h3>
+        <template x-if="selectedIndex !== null && blocks[selectedIndex]">
+            <div>
+                <p style="font-size:0.75rem;color:var(--admin-text-muted);margin-bottom:1rem;">Type: <span
+                        x-text="blocks[selectedIndex].type"></span></p>
+
+                <!-- Hero props -->
+                <template x-if="blocks[selectedIndex].type === 'hero'">
+                    <div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">Title</label>
+                            <input class="admin-input" x-model="blocks[selectedIndex].props.title">
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">Subtitle</label>
+                            <input class="admin-input" x-model="blocks[selectedIndex].props.subtitle">
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">CTA Label</label>
+                            <input class="admin-input" x-model="blocks[selectedIndex].props.cta[0].label"
+                                x-show="blocks[selectedIndex].props.cta && blocks[selectedIndex].props.cta.length">
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">CTA Link</label>
+                            <input class="admin-input" x-model="blocks[selectedIndex].props.cta[0].href"
+                                x-show="blocks[selectedIndex].props.cta && blocks[selectedIndex].props.cta.length">
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Text Block props -->
+                <template x-if="blocks[selectedIndex].type === 'text_block'">
+                    <div class="admin-form-group">
+                        <label class="admin-label">Content (Markdown)</label>
+                        <textarea class="admin-textarea" x-model="blocks[selectedIndex].props.content" rows="8"
+                            style="font-family:monospace;font-size:0.85rem;"></textarea>
+                    </div>
+                </template>
+
+                <!-- Video Embed props -->
+                <template x-if="blocks[selectedIndex].type === 'video_embed'">
+                    <div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">Title</label>
+                            <input class="admin-input" x-model="blocks[selectedIndex].props.title">
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">Embed URL</label>
+                            <input class="admin-input" x-model="blocks[selectedIndex].props.embed_url"
+                                placeholder="https://youtube.com/embed/...">
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Project Grid props -->
+                <template x-if="blocks[selectedIndex].type === 'project_grid'">
+                    <div class="admin-form-group">
+                        <label class="admin-label">Columns</label>
+                        <select class="admin-select" x-model="blocks[selectedIndex].props.columns">
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+                </template>
+
+                <!-- Image Banner props -->
+                <template x-if="blocks[selectedIndex].type === 'image_banner'">
+                    <div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">Image URL</label>
+                            <input class="admin-input" x-model="blocks[selectedIndex].props.media_url">
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">Caption</label>
+                            <input class="admin-input" x-model="blocks[selectedIndex].props.caption">
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Two Column props -->
+                <template x-if="blocks[selectedIndex].type === 'two_column'">
+                    <div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">Left Column (Markdown)</label>
+                            <textarea class="admin-textarea" x-model="blocks[selectedIndex].props.left_content" rows="5"
+                                style="font-family:monospace;font-size:0.85rem;"></textarea>
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">Right Column (Markdown)</label>
+                            <textarea class="admin-textarea" x-model="blocks[selectedIndex].props.right_content"
+                                rows="5" style="font-family:monospace;font-size:0.85rem;"></textarea>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Custom HTML props -->
+                <template x-if="blocks[selectedIndex].type === 'custom_html'">
+                    <div class="admin-form-group">
+                        <label class="admin-label">HTML</label>
+                        <textarea class="admin-textarea" x-model="blocks[selectedIndex].props.html" rows="8"
+                            style="font-family:monospace;font-size:0.85rem;"></textarea>
+                    </div>
+                </template>
+            </div>
+        </template>
+        <template x-if="selectedIndex === null">
+            <p style="color:var(--admin-text-muted);font-size:0.85rem;">Select a block to edit its properties</p>
+        </template>
+    </div>
+</div>
+
+<script>
+    const PAGE_ID = "{{ page.id }}";
+    const INITIAL_BLOCKS = {{ blocks_json | safe }};
+
+    function pageBuilder() {
+        return {
+            blocks: INITIAL_BLOCKS,
+            selectedIndex: null,
+            blockTypes: [
+                { type: 'hero', label: 'Hero', icon: '🏠', desc: 'Full-width hero with title & CTA' },
+                { type: 'text_block', label: 'Text', icon: '📝', desc: 'Markdown text content' },
+                { type: 'project_grid', label: 'Projects', icon: '📁', desc: 'Project card grid' },
+                { type: 'video_embed', label: 'Video', icon: '🎥', desc: 'YouTube/Vimeo embed' },
+                { type: 'image_banner', label: 'Image', icon: '🖼️', desc: 'Full-width image' },
+                { type: 'two_column', label: 'Two Column', icon: '📐', desc: 'Side-by-side layout' },
+                { type: 'custom_html', label: 'HTML', icon: '💻', desc: 'Custom HTML code' },
+            ],
+
+            getBlockLabel(type) {
+                const bt = this.blockTypes.find(b => b.type === type);
+                return bt ? `${bt.icon} ${bt.label}` : type;
+            },
+
+            getBlockSummary(block) {
+                if (block.props.title) return `"${block.props.title}"`;
+                if (block.props.content) return `"${block.props.content.substring(0, 30)}..."`;
+                return '';
+            },
+
+            addBlock(type) {
+                const defaults = {
+                    hero: { title: 'New Hero', subtitle: '', cta: [{ label: 'Learn More', href: '#' }] },
+                    text_block: { content: '# Hello\n\nWrite your content here...' },
+                    project_grid: { columns: 3, filterTags: [] },
+                    video_embed: { title: '', embed_url: '' },
+                    image_banner: { media_url: '', caption: '' },
+                    two_column: { left_content: '## Left', right_content: '## Right' },
+                    custom_html: { html: '<div>Custom content</div>' },
+                };
+                this.blocks.push({
+                    id: 'b-' + Math.random().toString(36).substr(2, 9),
+                    type,
+                    props: { ...(defaults[type] || {}) },
+                    styles: {},
+                });
+                this.selectedIndex = this.blocks.length - 1;
+            },
+
+            removeBlock(index) {
+                this.blocks.splice(index, 1);
+                this.selectedIndex = null;
+            },
+
+            moveBlock(index, direction) {
+                const newIndex = index + direction;
+                if (newIndex < 0 || newIndex >= this.blocks.length) return;
+                const item = this.blocks.splice(index, 1)[0];
+                this.blocks.splice(newIndex, 0, item);
+                this.selectedIndex = newIndex;
+            },
+        };
+    }
+
+    async function savePageBlocks() {
+        const blocksData = Alpine.raw(document.querySelector('[x-data]').__x.$data.blocks);
+        try {
+            const resp = await fetch(`/admin/api/pages/${PAGE_ID}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ blocks: blocksData }),
+            });
+            if (resp.ok) {
+                showToast('Page saved!', 'success');
+            } else {
+                showToast('Error saving page', 'error');
+            }
+        } catch (e) {
+            showToast('Network error', 'error');
+        }
+    }
+</script>
+{% endblock %}

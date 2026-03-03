@@ -1,0 +1,80 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Projects{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Projects</h1>
+    <div class="admin-header-actions">
+        <a href="/admin/projects/new" class="admin-btn admin-btn-primary">+ New Project</a>
+    </div>
+</div>
+
+<div class="admin-card">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Tech Stack</th>
+                <th>Updated</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for project in projects %}
+            <tr>
+                <td class="title-cell">{{ project.title }}</td>
+                <td>
+                    <span class="badge badge-{{ project.status }}">{{ project.status }}</span>
+                </td>
+                <td>
+                    {% for tag in (project.tech_stack or [])[:3] %}
+                    <span class="badge"
+                        style="background:var(--admin-accent-glow);color:var(--admin-accent);border:1px solid rgba(99,102,241,0.2);margin-right:0.25rem;">{{
+                        tag }}</span>
+                    {% endfor %}
+                </td>
+                <td style="color:var(--admin-text-muted);font-size:0.8rem;">{{ project.updated_at.strftime('%b %d, %Y')
+                    }}</td>
+                <td>
+                    <div style="display:flex;gap:0.5rem;">
+                        <a href="/admin/projects/{{ project.id }}/edit"
+                            class="admin-btn admin-btn-secondary admin-btn-sm">Edit</a>
+                        {% if project.status == 'draft' %}
+                        <button class="admin-btn admin-btn-success admin-btn-sm"
+                            hx-put="/admin/api/projects/{{ project.id }}" hx-vals='{"status":"published"}'
+                            hx-headers='{"Content-Type":"application/json"}' hx-swap="none"
+                            hx-on::after-request="location.reload()">
+                            Publish
+                        </button>
+                        {% elif project.status == 'published' %}
+                        <button class="admin-btn admin-btn-secondary admin-btn-sm"
+                            hx-put="/admin/api/projects/{{ project.id }}" hx-vals='{"status":"draft"}'
+                            hx-headers='{"Content-Type":"application/json"}' hx-swap="none"
+                            hx-on::after-request="location.reload()">
+                            Unpublish
+                        </button>
+                        {% endif %}
+                        <button class="admin-btn admin-btn-danger admin-btn-sm"
+                            hx-delete="/admin/api/projects/{{ project.id }}"
+                            hx-confirm="Are you sure you want to delete this project?" hx-swap="none"
+                            hx-on::after-request="location.reload()">
+                            Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if not projects %}
+    <div style="text-align:center;padding:3rem;color:var(--admin-text-muted);">
+        <p style="font-size:1.5rem;margin-bottom:0.5rem;">📁</p>
+        <p>No projects yet.</p>
+        <a href="/admin/projects/new" class="admin-btn admin-btn-primary" style="margin-top:1rem;">Create First
+            Project</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

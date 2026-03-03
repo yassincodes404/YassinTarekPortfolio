@@ -1,0 +1,14 @@
+<!-- Two Column Block -->
+<section class="section" {% if block.styles %}style="{% for k,v in block.styles.items() %}{{ k }}: {{ v }};{% endfor %}"
+    {% endif %}>
+    <div class="container">
+        <div class="two-column">
+            <div class="prose">
+                {{ block.props.left_content | default('') | markdown | safe }}
+            </div>
+            <div class="prose">
+                {{ block.props.right_content | default('') | markdown | safe }}
+            </div>
+        </div>
+    </div>
+</section>

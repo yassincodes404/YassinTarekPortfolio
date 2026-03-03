@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ site_title | default('Portfolio') }}{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}{{ site_description | default('Developer Portfolio') }}{% endblock %}">
+    {% block meta_extra %}{% endblock %}
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/css/main.css">
+    {% if css_vars %}
+    <style>
+        :root {
+            {% if css_vars.accent_color %}--accent-color: {{ css_vars.accent_color }};{% endif %}
+            {% if css_vars.accent_color_hover %}--accent-color-hover: {{ css_vars.accent_color_hover }};{% endif %}
+            {% if css_vars.font_heading %}--font-heading-family: '{{ css_vars.font_heading }}';{% endif %}
+            {% if css_vars.font_body %}--font-body-family: '{{ css_vars.font_body }}';{% endif %}
+        }
+    </style>
+    {% endif %}
+
+    {% block head_extra %}{% endblock %}
+
+    <!-- Analytics -->
+    {% if analytics_snippet %}{{ analytics_snippet | safe }}{% endif %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="/" class="nav-brand">
+                {{ site_title | default('Portfolio') | truncate(20) }}<span class="accent">.</span>
+            </a>
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/" class="{% if request.url.path == '/' %}active{% endif %}">Home</a></li>
+                <li><a href="/projects" class="{% if '/projects' in request.url.path %}active{% endif %}">Projects</a></li>
+                <li><a href="/about" class="{% if request.url.path == '/about' %}active{% endif %}">About</a></li>
+                <li><a href="/contact" class="{% if request.url.path == '/contact' %}active{% endif %}">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            {% if social_links %}
+            <div class="footer-links">
+                {% if social_links.github %}<a href="{{ social_links.github }}" target="_blank" rel="noopener">GitHub</a>{% endif %}
+                {% if social_links.linkedin %}<a href="{{ social_links.linkedin }}" target="_blank" rel="noopener">LinkedIn</a>{% endif %}
+                {% if social_links.twitter %}<a href="{{ social_links.twitter }}" target="_blank" rel="noopener">Twitter</a>{% endif %}
+            </div>
+            {% endif %}
+            <p>&copy; {{ now.year if now else '2025' }} {{ site_title | default('Portfolio') }}. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Mobile Nav Script -->
+    <script>
+        document.getElementById('navToggle')?.addEventListener('click', () => {
+            document.getElementById('navLinks')?.classList.toggle('open');
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.style.background = 'rgba(10, 10, 15, 0.95)';
+            } else {
+                navbar.style.background = 'rgba(10, 10, 15, 0.8)';
+            }
+        });
+
+        // Animate elements on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.card, .section-header').forEach(el => observer.observe(el));
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

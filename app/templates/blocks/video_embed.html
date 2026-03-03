@@ -1,0 +1,22 @@
+<!-- Video Embed Block -->
+<section class="section" {% if block.styles %}style="{% for k,v in block.styles.items() %}{{ k }}: {{ v }};{% endfor %}"
+    {% endif %}>
+    <div class="container">
+        {% if block.props.title %}
+        <div class="section-header">
+            <h2>{{ block.props.title }}</h2>
+        </div>
+        {% endif %}
+        <div class="video-container">
+            {% if block.props.embed_url %}
+            <iframe src="{{ block.props.embed_url }}" frameborder="0" allowfullscreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+            {% elif block.props.media_url %}
+            <video controls preload="metadata">
+                <source src="{{ block.props.media_url }}" type="video/mp4">
+                Your browser does not support video playback.
+            </video>
+            {% endif %}
+        </div>
+    </div>
+</section>

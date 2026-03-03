@@ -1,0 +1,14 @@
+<!-- Image Banner Block -->
+<section class="section" {% if block.styles %}style="{% for k,v in block.styles.items() %}{{ k }}: {{ v }};{% endfor %}"
+    {% endif %}>
+    <div class="container">
+        {% if block.props.media_url %}
+        <img src="{{ block.props.media_url }}" alt="{{ block.props.alt | default('') }}"
+            style="width:100%;border-radius:var(--card-radius);border:1px solid var(--border-color);">
+        {% endif %}
+        {% if block.props.caption %}
+        <p style="text-align:center;margin-top:1rem;color:var(--text-muted);font-size:0.9rem;">{{ block.props.caption }}
+        </p>
+        {% endif %}
+    </div>
+</section>
