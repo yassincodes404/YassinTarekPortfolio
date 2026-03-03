@@ -19,7 +19,8 @@ python-multipart>=0.0.12
 
 # Media
 pillow>=11.0.0
-python-magic-bin>=0.4.14
+python-magic>=0.4.27; sys_platform != 'win32'
+python-magic-bin>=0.4.14; sys_platform == 'win32'
 
 # Settings
 pydantic-settings>=2.5.0
