@@ -7,21 +7,39 @@
             <p>Explore my latest work and creative endeavors</p>
         </div>
         {% if projects %}
-        <div class="project-grid">
+        <div class="cursor-grid">
             {% for project in projects %}
-            <a href="/projects/{{ project.slug }}" class="card project-card animate-in" style="text-decoration:none;">
-                {% if project.cover_media %}
-                <img src="{{ project.cover_media.thumbnail_url or project.cover_media.url }}" alt="{{ project.title }}"
-                    class="card-image" loading="lazy">
-                {% else %}
-                <div class="card-image-placeholder">📁</div>
-                {% endif %}
-                <div class="card-body">
-                    <h3 class="card-title">{{ project.title }}</h3>
-                    <p class="card-text">{{ project.short_description | truncate(120) }}</p>
+            <a href="/projects/{{ project.slug }}" class="cursor-card animate-in" style="text-decoration:none;">
+                <div class="cursor-card-media">
+                    {% if project.video_embed_url %}
+                    {% if 'drive.google.com' in project.video_embed_url %}
+                    {% set gdrive_id = project.video_embed_url.split('/d/')[1].split('/')[0] if '/d/' in
+                    project.video_embed_url else project.video_embed_url.split('id=')[1].split('&')[0] if 'id=' in
+                    project.video_embed_url else '' %}
+                    <iframe src="https://drive.google.com/file/d/{{ gdrive_id }}/preview" frameborder="0"
+                        allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    {% else %}
+                    <iframe
+                        src="{{ project.video_embed_url }}?autoplay=1&mute=1&loop=1&playlist={{ project.video_embed_url.split('/')[-1].split('?')[0] }}&controls=0"
+                        frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    {% endif %}
+                    {% elif project.video_media %}
+                    <video autoplay loop muted playsinline>
+                        <source src="{{ project.video_media.url }}" type="{{ project.video_media.mime }}">
+                    </video>
+                    {% elif project.cover_media %}
+                    <img src="{{ project.cover_media.thumbnail_url or project.cover_media.url }}"
+                        alt="{{ project.title }}" loading="lazy">
+                    {% else %}
+                    <div class="card-image-placeholder text-gradient">📁</div>
+                    {% endif %}
+                </div>
+                <div class="cursor-card-content">
+                    <h3 class="cursor-card-title">{{ project.title }}</h3>
+                    <p class="cursor-card-text">{{ project.short_description | truncate(250) }}</p>
                     {% if project.tech_stack %}
                     <div class="tags">
-                        {% for tag in project.tech_stack[:4] %}
+                        {% for tag in project.tech_stack[:5] %}
                         <span class="tag">{{ tag }}</span>
                         {% endfor %}
                     </div>

@@ -27,6 +27,15 @@ async def create_project(
     if "metadata" in data:
         data["metadata_"] = data.pop("metadata")
 
+    # Sanitize FK fields — empty strings violate foreign key constraints
+    for fk_field in ("cover_media_id", "video_media_id"):
+        if fk_field in data and not data[fk_field]:
+            data[fk_field] = None
+
+    # Clean gallery list — remove empty strings
+    if "gallery" in data and isinstance(data["gallery"], list):
+        data["gallery"] = [g for g in data["gallery"] if g]
+
     project = await crud.create_project(db, data)
     cache_clear()
 
@@ -53,6 +62,15 @@ async def update_project(
     data = await request.json()
     if "metadata" in data:
         data["metadata_"] = data.pop("metadata")
+
+    # Sanitize FK fields — empty strings violate foreign key constraints
+    for fk_field in ("cover_media_id", "video_media_id"):
+        if fk_field in data and not data[fk_field]:
+            data[fk_field] = None
+
+    # Clean gallery list — remove empty strings
+    if "gallery" in data and isinstance(data["gallery"], list):
+        data["gallery"] = [g for g in data["gallery"] if g]
 
     old_status = project.status
 
@@ -188,6 +206,30 @@ async def list_media(
 
 
 # ── Pages ─────────────────────────────────────────────────
+
+@router.post("/pages")
+async def create_page(
+    request: Request,
+    user_id: str = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    data = await request.json()
+    if "metadata" in data:
+        data["metadata_"] = data.pop("metadata")
+    if "status" not in data or not data["status"]:
+        data["status"] = "draft"
+    
+    page = await crud.create_page(db, data)
+    cache_clear()
+
+    await crud.log_activity(
+        db, action="created", entity_type="page",
+        entity_id=page.id, user_id=user_id,
+        details={"title": page.title},
+    )
+
+    return {"id": page.id, "slug": page.slug, "status": "created"}
+
 
 @router.put("/pages/{page_id}")
 async def update_page(

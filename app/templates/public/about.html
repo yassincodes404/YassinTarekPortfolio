@@ -19,6 +19,8 @@
         {% include "blocks/image_banner.html" %}
         {% elif block.type == 'custom_html' %}
         {% include "blocks/custom_html.html" %}
+        {% elif block.type == 'achievements' %}
+        {% include "blocks/achievements.html" %}
         {% endif %}
         {% endfor %}
     </div>

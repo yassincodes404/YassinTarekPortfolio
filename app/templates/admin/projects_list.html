@@ -42,16 +42,12 @@
                             class="admin-btn admin-btn-secondary admin-btn-sm">Edit</a>
                         {% if project.status == 'draft' %}
                         <button class="admin-btn admin-btn-success admin-btn-sm"
-                            hx-put="/admin/api/projects/{{ project.id }}" hx-vals='{"status":"published"}'
-                            hx-headers='{"Content-Type":"application/json"}' hx-swap="none"
-                            hx-on::after-request="location.reload()">
+                            onclick="fetch('/admin/api/projects/{{ project.id }}', {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:'published'})}).then(()=>location.reload())">
                             Publish
                         </button>
                         {% elif project.status == 'published' %}
                         <button class="admin-btn admin-btn-secondary admin-btn-sm"
-                            hx-put="/admin/api/projects/{{ project.id }}" hx-vals='{"status":"draft"}'
-                            hx-headers='{"Content-Type":"application/json"}' hx-swap="none"
-                            hx-on::after-request="location.reload()">
+                            onclick="fetch('/admin/api/projects/{{ project.id }}', {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:'draft'})}).then(()=>location.reload())">
                             Unpublish
                         </button>
                         {% endif %}

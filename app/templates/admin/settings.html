@@ -81,6 +81,35 @@
             </div>
         </div>
 
+        <!-- Profile Image -->
+        <div class="admin-card">
+            <h3 style="margin-bottom:1rem;font-size:1rem;">Profile Image</h3>
+            <p style="font-size:0.8rem;color:var(--admin-text-muted);margin-bottom:1rem;">Upload a personal photo for
+                the hero section.</p>
+            <div class="admin-form-group">
+                <label class="admin-label">Current Image</label>
+                <div x-show="form.profile_image_url" style="margin-bottom:0.75rem;">
+                    <img :src="form.profile_image_url"
+                        style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:2px solid var(--admin-accent);">
+                </div>
+                <div x-show="!form.profile_image_url"
+                    style="width:100px;height:100px;border-radius:50%;background:var(--admin-card-hover);display:flex;align-items:center;justify-content:center;font-size:2rem;margin-bottom:0.75rem;">
+                    👤</div>
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Image URL (or upload below)</label>
+                <input class="admin-input" x-model="form.profile_image_url"
+                    placeholder="/uploads/your-photo.jpg or full URL">
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Upload New Photo</label>
+                <input type="file" accept="image/*" @change="uploadProfileImage($event)"
+                    style="font-size:0.85rem;color:var(--admin-text-secondary);">
+                <p x-show="uploadMsg" x-text="uploadMsg"
+                    style="font-size:0.8rem;margin-top:0.5rem;color:var(--admin-success);"></p>
+            </div>
+        </div>
+
         <!-- Analytics -->
         <div class="admin-card">
             <h3 style="margin-bottom:1rem;font-size:1rem;">Analytics & Integration</h3>
@@ -114,6 +143,7 @@
             site_description: s.site_description || '',
             contact_email: s.contact_email || '',
             analytics_snippet: s.analytics_snippet || '',
+            profile_image_url: s.profile_image_url || '',
         },
         theme: {
             accent_color: cssVars.accent_color || '#6366f1',
@@ -127,6 +157,27 @@
             twitter: socialLinks.twitter || '',
         },
         message: '',
+        uploadMsg: '',
+
+        async uploadProfileImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const resp = await fetch('/admin/api/media/upload', { method: 'POST', body: formData });
+                const result = await resp.json();
+                if (resp.ok) {
+                    this.form.profile_image_url = result.url;
+                    this.uploadMsg = 'Photo uploaded! Click Save Settings to apply.';
+                    setTimeout(() => this.uploadMsg = '', 4000);
+                } else {
+                    this.uploadMsg = result.detail || 'Upload failed';
+                }
+            } catch (e) {
+                this.uploadMsg = 'Upload error';
+            }
+        },
 
         async saveSettings() {
             const settings = {
@@ -149,6 +200,6 @@
             }
         }
     };
-}
+    }
 </script>
 {% endblock %}

@@ -8,6 +8,12 @@
     </div>
     {% endif %}
     <div class="container" style="position:relative;z-index:1;">
+        {% set prof_img = block.props.get('profile_image_url') or profile_image_url %}
+        {% if prof_img %}
+        <div class="hero-profile animate-in">
+            <img src="{{ prof_img }}" alt="Profile photo" class="hero-profile-img">
+        </div>
+        {% endif %}
         <h1 class="animate-in">
             {% set parts = block.props.title.split(' ') %}
             {% for part in parts %}

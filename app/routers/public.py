@@ -25,10 +25,12 @@ async def home(request: Request, db: AsyncSession = Depends(get_db)):
     for block in blocks:
         if block.get("type") == "project_grid":
             proj_list, _ = await crud.get_projects(db, status="published", limit=6)
-            # Eagerly load cover media
+            # Eagerly load cover media and video media
             for p in proj_list:
                 if p.cover_media_id:
                     p.cover_media = await crud.get_media_by_id(db, p.cover_media_id)
+                if p.video_media_id:
+                    p.video_media = await crud.get_media_by_id(db, p.video_media_id)
             projects = proj_list
             break
 
@@ -59,10 +61,12 @@ async def projects_list(
         offset=offset, limit=per_page,
     )
 
-    # Load cover media for each project
+    # Load cover media and video media for each project
     for p in projects:
         if p.cover_media_id:
             p.cover_media = await crud.get_media_by_id(db, p.cover_media_id)
+        if p.video_media_id:
+            p.video_media = await crud.get_media_by_id(db, p.video_media_id)
 
     total_pages = max(1, math.ceil(total / per_page))
     all_tags = await crud.get_all_tech_tags(db)

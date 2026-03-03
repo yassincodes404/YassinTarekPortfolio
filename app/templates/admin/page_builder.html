@@ -70,6 +70,11 @@
                             <input class="admin-input" x-model="blocks[selectedIndex].props.subtitle">
                         </div>
                         <div class="admin-form-group">
+                            <label class="admin-label">Profile Image URL</label>
+                            <input class="admin-input" x-model="blocks[selectedIndex].props.profile_image_url"
+                                placeholder="/uploads/your-photo.jpg or full URL">
+                        </div>
+                        <div class="admin-form-group">
                             <label class="admin-label">CTA Label</label>
                             <input class="admin-input" x-model="blocks[selectedIndex].props.cta[0].label"
                                 x-show="blocks[selectedIndex].props.cta && blocks[selectedIndex].props.cta.length">
@@ -156,6 +161,32 @@
                             style="font-family:monospace;font-size:0.85rem;"></textarea>
                     </div>
                 </template>
+
+                <!-- Achievements props -->
+                <template x-if="blocks[selectedIndex].type === 'achievements'">
+                    <div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">Title</label>
+                            <input class="admin-input" x-model="blocks[selectedIndex].props.title"
+                                placeholder="Milestones & Achievements">
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">Subtitle</label>
+                            <input class="admin-input" x-model="blocks[selectedIndex].props.subtitle"
+                                placeholder="Optional subtitle">
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">Items (JSON Array)</label>
+                            <textarea class="admin-textarea"
+                                x-bind:value="JSON.stringify(blocks[selectedIndex].props.items, null, 2)"
+                                @change="blocks[selectedIndex].props.items = JSON.parse($event.target.value)" rows="8"
+                                style="font-family:monospace;font-size:0.85rem;"
+                                placeholder='[ {"icon": "🏆", "title": "...", "description": "...", "year": "2024"} ]'></textarea>
+                            <small style="color:var(--admin-text-muted);display:block;margin-top:0.25rem;">Must be valid
+                                JSON.</small>
+                        </div>
+                    </div>
+                </template>
             </div>
         </template>
         <template x-if="selectedIndex === null">
@@ -177,9 +208,10 @@
                 { type: 'text_block', label: 'Text', icon: '📝', desc: 'Markdown text content' },
                 { type: 'project_grid', label: 'Projects', icon: '📁', desc: 'Project card grid' },
                 { type: 'video_embed', label: 'Video', icon: '🎥', desc: 'YouTube/Vimeo embed' },
-                { type: 'image_banner', label: 'Image', icon: '🖼️', desc: 'Full-width image' },
-                { type: 'two_column', label: 'Two Column', icon: '📐', desc: 'Side-by-side layout' },
-                { type: 'custom_html', label: 'HTML', icon: '💻', desc: 'Custom HTML code' },
+                { type: 'image_banner', label: 'Image Banner', icon: '🖼️', desc: 'Edge-to-edge image' },
+                { type: 'two_column', label: 'Two Column', icon: '🪟', desc: 'Text & Media split' },
+                { type: 'custom_html', label: 'Custom HTML', icon: '💻', desc: 'Raw HTML structure' },
+                { type: 'achievements', label: 'Achievements', icon: '🏆', desc: 'List of milestones or metrics' }
             ],
 
             getBlockLabel(type) {
@@ -195,13 +227,14 @@
 
             addBlock(type) {
                 const defaults = {
-                    hero: { title: 'New Hero', subtitle: '', cta: [{ label: 'Learn More', href: '#' }] },
+                    hero: { title: 'New Hero', subtitle: '', profile_image_url: '', cta: [{ label: 'Learn More', href: '#' }] },
                     text_block: { content: '# Hello\n\nWrite your content here...' },
                     project_grid: { columns: 3, filterTags: [] },
                     video_embed: { title: '', embed_url: '' },
                     image_banner: { media_url: '', caption: '' },
-                    two_column: { left_content: '## Left', right_content: '## Right' },
-                    custom_html: { html: '<div>Custom content</div>' },
+                    two_column: { heading: 'Split Layout', content: '...', image: '', reverse: false },
+                    custom_html: { html: '<div class="container">\n  <h1>Custom</h1>\n</div>' },
+                    achievements: { title: 'Milestones & Achievements', subtitle: '', items: [] }
                 };
                 this.blocks.push({
                     id: 'b-' + Math.random().toString(36).substr(2, 9),

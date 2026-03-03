@@ -61,20 +61,36 @@
             </div>
         </div>
 
+        <!-- Cover Image Picker -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
             <div class="admin-form-group">
-                <label class="admin-label">Cover Image ID</label>
-                <div style="display:flex;gap:0.5rem;">
-                    <input type="text" class="admin-input" x-model="form.cover_media_id" placeholder="Media ID">
+                <label class="admin-label">Cover Image</label>
+                <div style="display:flex;gap:0.5rem;align-items:center;">
+                    <input type="text" class="admin-input" x-model="form.cover_media_id" placeholder="Media ID" readonly
+                        style="opacity:0.7;">
                     <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm"
-                        onclick="window.open('/admin/media?picker=1','media','width=800,height=600')">Browse</button>
+                        @click="openPicker('cover_media_id')">Browse</button>
+                    <button type="button" class="admin-btn admin-btn-danger admin-btn-sm"
+                        @click="form.cover_media_id = ''" x-show="form.cover_media_id">✕</button>
+                </div>
+                <div x-show="form.cover_media_id" style="margin-top:0.5rem;">
+                    <img :src="coverPreview"
+                        style="max-height:80px;border-radius:6px;border:1px solid var(--admin-border);"
+                        x-show="coverPreview">
                 </div>
             </div>
             <div class="admin-form-group">
-                <label class="admin-label">Video Media ID</label>
-                <div style="display:flex;gap:0.5rem;">
-                    <input type="text" class="admin-input" x-model="form.video_media_id"
-                        placeholder="Media ID (optional)">
+                <label class="admin-label">Video Media (uploaded file)</label>
+                <div style="display:flex;gap:0.5rem;align-items:center;">
+                    <input type="text" class="admin-input" x-model="form.video_media_id" placeholder="Media ID" readonly
+                        style="opacity:0.7;">
+                    <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm"
+                        @click="openPicker('video_media_id')">Browse</button>
+                    <button type="button" class="admin-btn admin-btn-danger admin-btn-sm"
+                        @click="form.video_media_id = ''" x-show="form.video_media_id">✕</button>
+                </div>
+                <div x-show="form.video_media_id" style="margin-top:0.5rem;">
+                    <span style="font-size:0.8rem;color:var(--admin-text-secondary);" x-text="videoPreviewName"></span>
                 </div>
             </div>
         </div>
@@ -109,6 +125,43 @@
             :style="messageType === 'success' ? 'background:rgba(34,197,94,0.1);color:#22c55e;' : 'background:rgba(239,68,68,0.1);color:#ef4444;'">
         </div>
     </form>
+
+    <!-- Media Picker Modal -->
+    <div x-show="pickerOpen" x-cloak
+        style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);"
+        @click.self="pickerOpen = false">
+        <div
+            style="background:var(--admin-bg);border:1px solid var(--admin-border);border-radius:var(--admin-radius);max-width:800px;width:95%;max-height:80vh;overflow:auto;padding:1.5rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                <h3 style="font-size:1rem;">Select Media</h3>
+                <button class="admin-btn admin-btn-secondary admin-btn-sm" @click="pickerOpen = false">✕ Close</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0.75rem;">
+                <template x-for="item in pickerItems" :key="item.id">
+                    <div @click="selectMedia(item)"
+                        style="cursor:pointer;border:2px solid var(--admin-border);border-radius:8px;overflow:hidden;transition:all .2s;"
+                        :style="{'border-color': item.id === form[pickerTarget] ? 'var(--admin-accent)' : 'var(--admin-border)'}"
+                        class="media-picker-item">
+                        <template x-if="item.mime && item.mime.startsWith('image')">
+                            <img :src="item.thumbnail_url || item.url"
+                                style="width:100%;aspect-ratio:1;object-fit:cover;">
+                        </template>
+                        <template x-if="item.mime && item.mime.startsWith('video')">
+                            <div
+                                style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--admin-card);font-size:2.5rem;">
+                                🎥</div>
+                        </template>
+                        <div style="padding:0.4rem;font-size:0.7rem;color:var(--admin-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                            x-text="item.filename"></div>
+                    </div>
+                </template>
+            </div>
+            <div x-show="pickerItems.length === 0"
+                style="text-align:center;padding:2rem;color:var(--admin-text-muted);">
+                No media uploaded yet. <a href="/admin/media" target="_blank">Upload some first →</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -133,6 +186,58 @@
         seoDescription: (existingData.metadata || {}).description || '',
         message: '',
         messageType: '',
+
+        // Media picker state
+        pickerOpen: false,
+        pickerTarget: '',
+        pickerItems: [],
+        coverPreview: '',
+        videoPreviewName: '',
+
+        async init() {
+            // Load previews for existing media
+            if (this.form.cover_media_id) {
+                this.loadPreview(this.form.cover_media_id, 'cover');
+            }
+            if (this.form.video_media_id) {
+                this.loadPreview(this.form.video_media_id, 'video');
+            }
+        },
+
+        async loadPreview(mediaId, type) {
+            try {
+                const resp = await fetch('/admin/api/media');
+                const data = await resp.json();
+                const item = data.items.find(m => m.id === mediaId);
+                if (item) {
+                    if (type === 'cover') this.coverPreview = item.thumbnail_url || item.url;
+                    if (type === 'video') this.videoPreviewName = item.filename;
+                }
+            } catch (e) { }
+        },
+
+        async openPicker(target) {
+            this.pickerTarget = target;
+            try {
+                const resp = await fetch('/admin/api/media');
+                const data = await resp.json();
+                this.pickerItems = data.items;
+            } catch (e) {
+                this.pickerItems = [];
+            }
+            this.pickerOpen = true;
+        },
+
+        selectMedia(item) {
+            this.form[this.pickerTarget] = item.id;
+            if (this.pickerTarget === 'cover_media_id') {
+                this.coverPreview = item.thumbnail_url || item.url;
+            }
+            if (this.pickerTarget === 'video_media_id') {
+                this.videoPreviewName = item.filename;
+            }
+            this.pickerOpen = false;
+        },
 
         async saveProject() {
             const data = {
@@ -171,6 +276,6 @@
             }
         }
     };
-}
+    }
 </script>
 {% endblock %}

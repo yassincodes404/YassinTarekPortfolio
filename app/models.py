@@ -31,7 +31,6 @@ class User(Base):
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
     # Relationships
-    activities = relationship("ActivityLog", back_populates="user")
 
 
 class Media(Base):
@@ -110,7 +109,7 @@ class Revision(Base):
     entity_type = Column(String(50), nullable=False, index=True)  # project / page
     entity_id = Column(String(36), nullable=False, index=True)
     snapshot = Column(JSON, nullable=False)  # full JSON snapshot
-    created_by = Column(String(36), ForeignKey("users.id"), nullable=True)
+    created_by = Column(String(36), nullable=True)  # no FK — must not fail on stale sessions
     created_at = Column(DateTime, default=utcnow)
 
     __table_args__ = (
@@ -122,15 +121,12 @@ class ActivityLog(Base):
     __tablename__ = "activity_log"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
+    user_id = Column(String(36), nullable=True)  # no FK — log must not fail on stale sessions
     action = Column(String(100), nullable=False)  # created, updated, published, deleted, uploaded, ...
     entity_type = Column(String(50), nullable=False)
     entity_id = Column(String(36), nullable=True)
     details = Column(JSON, default=dict)
     created_at = Column(DateTime, default=utcnow, index=True)
-
-    # Relationships
-    user = relationship("User", back_populates="activities")
 
     __table_args__ = (
         Index("ix_activity_entity", "entity_type", "entity_id"),

@@ -62,4 +62,5 @@ async def get_site_context(db) -> dict:
         "css_vars": css_vars,
         "social_links": social_links,
         "contact_email": all_settings.get("contact_email", ""),
+        "profile_image_url": all_settings.get("profile_image_url", ""),
     }

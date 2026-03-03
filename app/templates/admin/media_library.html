@@ -38,6 +38,12 @@
         {% for item in media_list %}
         <div class="media-item" data-id="{{ item.id }}" onclick="toggleSelect(this)">
             <div class="media-check">✓</div>
+            <div class="media-actions">
+                <button class="media-action-btn media-delete-btn"
+                    onclick="event.stopPropagation(); deleteMedia('{{ item.id }}')" title="Delete">✕</button>
+                <button class="media-action-btn media-copy-btn"
+                    onclick="event.stopPropagation(); copyId('{{ item.id }}')" title="Copy ID">📋</button>
+            </div>
             {% if item.thumbnail_url %}
             <img src="{{ item.thumbnail_url }}" alt="{{ item.original_filename }}" loading="lazy">
             {% elif 'image' in item.mime %}
@@ -73,6 +79,56 @@
     {% endif %}
 </div>
 
+<style>
+    .media-actions {
+        position: absolute;
+        top: 0.4rem;
+        left: 0.4rem;
+        display: flex;
+        gap: 0.3rem;
+        opacity: 0;
+        transition: opacity 0.2s;
+        z-index: 2;
+    }
+
+    .media-item:hover .media-actions {
+        opacity: 1;
+    }
+
+    .media-action-btn {
+        width: 26px;
+        height: 26px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+    }
+
+    .media-delete-btn {
+        background: rgba(239, 68, 68, 0.85);
+        color: white;
+    }
+
+    .media-delete-btn:hover {
+        background: #ef4444;
+        transform: scale(1.1);
+    }
+
+    .media-copy-btn {
+        background: rgba(99, 102, 241, 0.85);
+        color: white;
+    }
+
+    .media-copy-btn:hover {
+        background: var(--admin-accent);
+        transform: scale(1.1);
+    }
+</style>
+
 <script>
     const selectedIds = new Set();
 
@@ -85,6 +141,22 @@
             selectedIds.delete(id);
         }
         document.getElementById('bulkDeleteBtn').style.display = selectedIds.size > 0 ? 'inline-flex' : 'none';
+    }
+
+    async function deleteMedia(id) {
+        if (!confirm('Delete this file?')) return;
+        const resp = await fetch(`/admin/api/media/${id}`, { method: 'DELETE' });
+        if (resp.ok) {
+            showToast('File deleted', 'success');
+            location.reload();
+        } else {
+            showToast('Error deleting file', 'error');
+        }
+    }
+
+    function copyId(id) {
+        navigator.clipboard.writeText(id);
+        showToast('ID copied!', 'success');
     }
 
     async function uploadFiles(files) {

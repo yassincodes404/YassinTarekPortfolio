@@ -1,0 +1,28 @@
+<!-- Achievements Block -->
+{% set props = block.get('props', {}) %}
+<section class="section" {% if block.get('styles')
+    %}style="{% for k,v in block.styles.items() %}{{ k }}: {{ v }};{% endfor %}" {% endif %}>
+    <div class="container">
+        <div class="section-header">
+            <h2>{{ props.get('title', 'Achievements & Milestones') }}</h2>
+            {% if props.get('subtitle') %}
+            <p>{{ props.subtitle }}</p>
+            {% endif %}
+        </div>
+
+        <div class="achievements-grid">
+            {% for item in props.get('items', []) %}
+            <div class="achievement-card animate-in">
+                <div class="achievement-icon">{{ item.get('icon', '🏆') }}</div>
+                <div class="achievement-content">
+                    <h3>{{ item.get('title', '') }}</h3>
+                    <p>{{ item.get('description', '') }}</p>
+                    {% if item.get('year') %}
+                    <span class="achievement-year">{{ item.year }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>

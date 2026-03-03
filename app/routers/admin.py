@@ -190,6 +190,19 @@ async def pages_list(
     })
 
 
+@router.get("/pages/new", response_class=HTMLResponse)
+async def page_new(
+    request: Request,
+    user_id: str = Depends(require_admin),
+):
+    return templates.TemplateResponse("admin/page_builder.html", {
+        "request": request,
+        "active_page": "pages",
+        "page": None,
+        "blocks_json": "[]",
+    })
+
+
 @router.get("/pages/{page_id}/edit", response_class=HTMLResponse)
 async def page_edit(
     request: Request,

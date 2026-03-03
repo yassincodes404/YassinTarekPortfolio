@@ -79,7 +79,7 @@ class MediaOut(BaseModel):
 
 class BlockSchema(BaseModel):
     id: str
-    type: str  # hero, project_grid, text_block, video_embed, image_banner, two_column, custom_html
+    type: str  # hero, project_grid, text_block, video_embed, image_banner, two_column, custom_html, achievements
     props: dict = {}
     styles: dict = {}
 

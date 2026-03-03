@@ -161,6 +161,14 @@ async def get_media_by_id(db: AsyncSession, media_id: str) -> Media | None:
 async def delete_media(db: AsyncSession, media_id: str) -> bool:
     media = await get_media_by_id(db, media_id)
     if media:
+        # Nullify FK references in projects to avoid foreign key constraint errors
+        from sqlalchemy import update as sa_update
+        await db.execute(
+            sa_update(Project).where(Project.cover_media_id == media_id).values(cover_media_id=None)
+        )
+        await db.execute(
+            sa_update(Project).where(Project.video_media_id == media_id).values(video_media_id=None)
+        )
         await db.delete(media)
         await db.flush()
         return True
@@ -291,16 +299,20 @@ async def log_activity(
     user_id: str | None = None,
     details: dict | None = None,
 ):
-    entry = ActivityLog(
-        user_id=user_id,
-        action=action,
-        entity_type=entity_type,
-        entity_id=entity_id,
-        details=details or {},
-    )
-    db.add(entry)
-    await db.flush()
-    return entry
+    try:
+        entry = ActivityLog(
+            user_id=user_id,
+            action=action,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            details=details or {},
+        )
+        db.add(entry)
+        await db.flush()
+        return entry
+    except Exception:
+        # Never let logging break a real operation
+        pass
 
 
 async def get_recent_activity(db: AsyncSession, limit: int = 20) -> list[ActivityLog]:
