@@ -1,19 +1,22 @@
 {% extends "admin/base_admin.html" %}
-{% block title %}Page Builder — {{ page.title }}{% endblock %}
+{% block title %}Page Builder{% if page %} — {{ page.title }}{% endif %}{% endblock %}
 
 {% block content %}
 <div class="admin-header">
-    <h1>Page Builder: {{ page.title }}</h1>
+    <h1>Page Builder{% if page %}: {{ page.title }}{% endif %}</h1>
     <div class="admin-header-actions">
         <a href="/admin/pages" class="admin-btn admin-btn-secondary">← Back</a>
-        <button class="admin-btn admin-btn-primary" onclick="savePageBlocks()">Save Page</button>
+        <button class="admin-btn admin-btn-primary" id="savePageBtn">Save Page</button>
+        {% if page %}
         {# Home page uses "/" instead of "/home" #}
         <a href="{% if page.slug == 'home' %}/{% else %}/{{ page.slug }}{% endif %}" target="_blank"
             class="admin-btn admin-btn-secondary">Preview</a>
+        {% endif %}
     </div>
 </div>
 
-<div class="builder-layout" x-data="pageBuilder()">
+<div class="builder-layout" x-data="pageBuilder()"
+    x-init="$nextTick(() => { document.getElementById('savePageBtn').addEventListener('click', () => $data.savePage()) })">
     <!-- Block Palette -->
     <div class="builder-palette">
         <h3>Add Block</h3>
@@ -51,7 +54,8 @@
             </div>
         </template>
         <p style="margin-top:1rem;font-size:0.8rem;color:var(--admin-text-muted);">
-            Use the ↑ and ↓ buttons on each block to change its order on the page, then click <strong>Save Page</strong>
+            Use the ↑ and ↓ buttons on each block to change its order on the page, then click <strong>Save
+                Page</strong>
             and use Preview to see the updated layout.
         </p>
     </div>
@@ -76,9 +80,13 @@
                             <input class="admin-input" x-model="blocks[selectedIndex].props.subtitle">
                         </div>
                         <div class="admin-form-group">
-                            <label class="admin-label">Profile Image URL</label>
-                            <input class="admin-input" x-model="blocks[selectedIndex].props.profile_image_url"
-                                placeholder="/uploads/your-photo.jpg or full URL">
+                            <label class="admin-label">Profile Image</label>
+                            <div style="display:flex;gap:0.5rem;">
+                                <input class="admin-input" x-model="blocks[selectedIndex].props.profile_image_url"
+                                    placeholder="/uploads/your-photo.jpg or full URL">
+                                <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm"
+                                    @click="openMediaPicker('profile_image_url')">Browse</button>
+                            </div>
                         </div>
                         <div class="admin-form-group">
                             <label class="admin-label">CTA Label</label>
@@ -110,9 +118,24 @@
                             <input class="admin-input" x-model="blocks[selectedIndex].props.title">
                         </div>
                         <div class="admin-form-group">
-                            <label class="admin-label">Embed URL</label>
+                            <label class="admin-label">Embed URL (YouTube / Google Drive)</label>
                             <input class="admin-input" x-model="blocks[selectedIndex].props.embed_url"
-                                placeholder="https://youtube.com/embed/...">
+                                placeholder="https://youtube.com/embed/... or Google Drive link">
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label">Or pick an uploaded video</label>
+                            <div style="display:flex;gap:0.5rem;">
+                                <input class="admin-input" x-model="blocks[selectedIndex].props.media_url"
+                                    placeholder="No video selected" readonly style="opacity:0.7;">
+                                <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm"
+                                    @click="openMediaPicker('media_url')">Browse</button>
+                                <button type="button" class="admin-btn admin-btn-danger admin-btn-sm"
+                                    @click="blocks[selectedIndex].props.media_url = ''"
+                                    x-show="blocks[selectedIndex].props.media_url">✕</button>
+                            </div>
+                            <small style="color:var(--admin-text-muted);display:block;margin-top:0.25rem;">
+                                If both are set, Embed URL takes priority.
+                            </small>
                         </div>
                     </div>
                 </template>
@@ -133,8 +156,20 @@
                 <template x-if="blocks[selectedIndex].type === 'image_banner'">
                     <div>
                         <div class="admin-form-group">
-                            <label class="admin-label">Image URL</label>
-                            <input class="admin-input" x-model="blocks[selectedIndex].props.media_url">
+                            <label class="admin-label">Image</label>
+                            <div style="display:flex;gap:0.5rem;">
+                                <input class="admin-input" x-model="blocks[selectedIndex].props.media_url"
+                                    placeholder="No image selected" readonly style="opacity:0.7;">
+                                <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm"
+                                    @click="openMediaPicker('media_url')">Browse</button>
+                                <button type="button" class="admin-btn admin-btn-danger admin-btn-sm"
+                                    @click="blocks[selectedIndex].props.media_url = ''"
+                                    x-show="blocks[selectedIndex].props.media_url">✕</button>
+                            </div>
+                            <div x-show="blocks[selectedIndex].props.media_url" style="margin-top:0.5rem;">
+                                <img :src="blocks[selectedIndex].props.media_url"
+                                    style="max-height:80px;border-radius:6px;border:1px solid var(--admin-border);">
+                            </div>
                         </div>
                         <div class="admin-form-group">
                             <label class="admin-label">Caption</label>
@@ -199,6 +234,42 @@
             <p style="color:var(--admin-text-muted);font-size:0.85rem;">Select a block to edit its properties</p>
         </template>
     </div>
+
+    <!-- Media Picker Modal -->
+    <div x-show="pickerOpen" x-cloak
+        style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);"
+        @click.self="pickerOpen = false">
+        <div
+            style="background:var(--admin-bg);border:1px solid var(--admin-border);border-radius:var(--admin-radius);max-width:800px;width:95%;max-height:80vh;overflow:auto;padding:1.5rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                <h3 style="font-size:1rem;">Select Media</h3>
+                <button class="admin-btn admin-btn-secondary admin-btn-sm" @click="pickerOpen = false">✕ Close</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0.75rem;">
+                <template x-for="item in pickerItems" :key="item.id">
+                    <div @click="selectPickerMedia(item)"
+                        style="cursor:pointer;border:2px solid var(--admin-border);border-radius:8px;overflow:hidden;transition:all .2s;"
+                        class="media-picker-item">
+                        <template x-if="item.mime && item.mime.startsWith('image')">
+                            <img :src="item.thumbnail_url || item.url"
+                                style="width:100%;aspect-ratio:1;object-fit:cover;">
+                        </template>
+                        <template x-if="item.mime && item.mime.startsWith('video')">
+                            <div
+                                style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--admin-card);font-size:2.5rem;">
+                                🎥</div>
+                        </template>
+                        <div style="padding:0.4rem;font-size:0.7rem;color:var(--admin-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                            x-text="item.filename"></div>
+                    </div>
+                </template>
+            </div>
+            <div x-show="pickerItems.length === 0"
+                style="text-align:center;padding:2rem;color:var(--admin-text-muted);">
+                No media uploaded yet. <a href="/admin/media" target="_blank">Upload some first →</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -209,11 +280,17 @@
         return {
             blocks: INITIAL_BLOCKS,
             selectedIndex: null,
+
+            // Media picker state
+            pickerOpen: false,
+            pickerTarget: '',
+            pickerItems: [],
+
             blockTypes: [
                 { type: 'hero', label: 'Hero', icon: '🏠', desc: 'Full-width hero with title & CTA' },
                 { type: 'text_block', label: 'Text', icon: '📝', desc: 'Markdown text content' },
                 { type: 'project_grid', label: 'Projects', icon: '📁', desc: 'Project card grid' },
-                { type: 'video_embed', label: 'Video', icon: '🎥', desc: 'YouTube/Vimeo embed' },
+                { type: 'video_embed', label: 'Video', icon: '🎥', desc: 'YouTube/Google Drive/uploaded video' },
                 { type: 'image_banner', label: 'Image Banner', icon: '🖼️', desc: 'Edge-to-edge image' },
                 { type: 'two_column', label: 'Two Column', icon: '🪟', desc: 'Text & Media split' },
                 { type: 'custom_html', label: 'Custom HTML', icon: '💻', desc: 'Raw HTML structure' },
@@ -236,9 +313,9 @@
                     hero: { title: 'New Hero', subtitle: '', profile_image_url: '', cta: [{ label: 'Learn More', href: '#' }] },
                     text_block: { content: '# Hello\n\nWrite your content here...' },
                     project_grid: { columns: 3, filterTags: [] },
-                    video_embed: { title: '', embed_url: '' },
+                    video_embed: { title: '', embed_url: '', media_url: '' },
                     image_banner: { media_url: '', caption: '' },
-                    two_column: { heading: 'Split Layout', content: '...', image: '', reverse: false },
+                    two_column: { heading: 'Split Layout', content: '...', image: '', reverse: false, left_content: '', right_content: '' },
                     custom_html: { html: '<div class="container">\n  <h1>Custom</h1>\n</div>' },
                     achievements: { title: 'Milestones & Achievements', subtitle: '', items: [] }
                 };
@@ -263,25 +340,47 @@
                 this.blocks.splice(newIndex, 0, item);
                 this.selectedIndex = newIndex;
             },
-        };
-    }
 
-    async function savePageBlocks() {
-        const blocksData = Alpine.raw(document.querySelector('[x-data]').__x.$data.blocks);
-        try {
-            const resp = await fetch(`/admin/api/pages/${PAGE_ID}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ blocks: blocksData }),
-            });
-            if (resp.ok) {
-                showToast('Page saved!', 'success');
-            } else {
-                showToast('Error saving page', 'error');
-            }
-        } catch (e) {
-            showToast('Network error', 'error');
-        }
+            // ── Media Picker ────────────────────────────────
+            async openMediaPicker(targetProp) {
+                this.pickerTarget = targetProp;
+                try {
+                    const resp = await fetch('/admin/api/media');
+                    const data = await resp.json();
+                    this.pickerItems = data.items;
+                } catch (e) {
+                    this.pickerItems = [];
+                }
+                this.pickerOpen = true;
+            },
+
+            selectPickerMedia(item) {
+                if (this.selectedIndex !== null && this.blocks[this.selectedIndex]) {
+                    this.blocks[this.selectedIndex].props[this.pickerTarget] = item.url;
+                }
+                this.pickerOpen = false;
+            },
+
+            // ── Save ────────────────────────────────────────
+            async savePage() {
+                try {
+                    const blocksData = JSON.parse(JSON.stringify(this.blocks));
+                    const resp = await fetch(`/admin/api/pages/${PAGE_ID}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ blocks: blocksData }),
+                    });
+                    if (resp.ok) {
+                        showToast('Page saved!', 'success');
+                    } else {
+                        const err = await resp.json().catch(() => ({}));
+                        showToast(err.detail || 'Error saving page', 'error');
+                    }
+                } catch (e) {
+                    showToast('Network error', 'error');
+                }
+            },
+        };
     }
 </script>
 {% endblock %}
