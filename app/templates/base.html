@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ site_title | default('Portfolio') }}{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}{{ site_description | default('Developer Portfolio') }}{% endblock %}">
+    <meta name="description"
+        content="{% block meta_description %}{{ site_description | default('Developer Portfolio') }}{% endblock %}">
     {% block meta_extra %}{% endblock %}
 
     <!-- Styles -->
@@ -12,10 +14,57 @@
     {% if css_vars %}
     <style>
         :root {
-            {% if css_vars.accent_color %}--accent-color: {{ css_vars.accent_color }};{% endif %}
-            {% if css_vars.accent_color_hover %}--accent-color-hover: {{ css_vars.accent_color_hover }};{% endif %}
-            {% if css_vars.font_heading %}--font-heading-family: '{{ css_vars.font_heading }}';{% endif %}
-            {% if css_vars.font_body %}--font-body-family: '{{ css_vars.font_body }}';{% endif %}
+                {
+                % if css_vars.accent_color %
+            }
+
+            --accent-color: {
+                    {
+                    css_vars.accent_color
+                }
+            }
+
+            ;
+
+                {
+                % endif %
+            }
+
+                {
+                % if css_vars.accent_color_hover %
+            }
+
+            --accent-color-hover: {
+                    {
+                    css_vars.accent_color_hover
+                }
+            }
+
+            ;
+
+                {
+                % endif %
+            }
+
+                {
+                % if css_vars.font_heading %
+            }
+
+            --font-heading-family: '{{ css_vars.font_heading }}';
+
+                {
+                % endif %
+            }
+
+                {
+                % if css_vars.font_body %
+            }
+
+            --font-body-family: '{{ css_vars.font_body }}';
+
+                {
+                % endif %
+            }
         }
     </style>
     {% endif %}
@@ -25,6 +74,7 @@
     <!-- Analytics -->
     {% if analytics_snippet %}{{ analytics_snippet | safe }}{% endif %}
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
@@ -35,7 +85,8 @@
             <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
             <ul class="nav-links" id="navLinks">
                 <li><a href="/" class="{% if request.url.path == '/' %}active{% endif %}">Home</a></li>
-                <li><a href="/projects" class="{% if '/projects' in request.url.path %}active{% endif %}">Projects</a></li>
+                <li><a href="/projects" class="{% if '/projects' in request.url.path %}active{% endif %}">Projects</a>
+                </li>
                 <li><a href="/about" class="{% if request.url.path == '/about' %}active{% endif %}">About</a></li>
                 <li><a href="/contact" class="{% if request.url.path == '/contact' %}active{% endif %}">Contact</a></li>
             </ul>
@@ -47,17 +98,34 @@
         {% block content %}{% endblock %}
     </main>
 
+    {# Floating WhatsApp contact button, shown only when configured #}
+    {% if whatsapp_url %}
+    <a href="{{ whatsapp_url }}" class="whatsapp-fab" target="_blank" rel="noopener" aria-label="Contact on WhatsApp">
+        <span class="whatsapp-icon" aria-hidden="true">
+            <svg viewBox="0 0 32 32" focusable="false">
+                <path
+                    d="M16 3C9.4 3 4 8.3 4 14.8c0 2.5.8 4.7 2.1 6.6L4 29l7-2.3c1.8 1 3.8 1.5 5.9 1.5 6.6 0 12-5.3 12-11.8C29 8.3 22.6 3 16 3zm0 20.9c-1.8 0-3.5-.5-5-1.4l-.4-.2-4.1 1.3 1.3-4-.2-.4c-1-1.5-1.6-3.2-1.6-5 0-5.1 4.1-9.2 9.2-9.2 5.1 0 9.2 4.1 9.2 9.2 0 5-4.1 9.1-9.2 9.1zm5.1-6.7c-.3-.1-1.8-.9-2.1-1-.3-.1-.5-.1-.8.1-.2.3-.9 1-.9 1.1-.1.1-.3.2-.6.1-1.6-.6-2.8-1.8-3.6-3.2-.1-.3 0-.5.1-.7.1-.1.3-.3.4-.4.2-.1.3-.3.4-.5.1-.2.1-.4 0-.6-.1-.2-.8-2-1.1-2.7-.3-.7-.6-.6-.8-.6h-.7c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.6 0 1.5 1.1 3 1.3 3.3.2.3 2.1 3.3 5.1 4.6 3 .1 3 .1 3.5.1 0 0 1.1-.4 1.5-.9.4-.5.6-1.2.6-1.2.1-.1.1-.4 0-.5-.2-.1-.4-.2-.7-.3z">
+                </path>
+            </svg>
+        </span>
+    </a>
+    {% endif %}
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
             {% if social_links %}
             <div class="footer-links">
-                {% if social_links.github %}<a href="{{ social_links.github }}" target="_blank" rel="noopener">GitHub</a>{% endif %}
-                {% if social_links.linkedin %}<a href="{{ social_links.linkedin }}" target="_blank" rel="noopener">LinkedIn</a>{% endif %}
-                {% if social_links.twitter %}<a href="{{ social_links.twitter }}" target="_blank" rel="noopener">Twitter</a>{% endif %}
+                {% if social_links.github %}<a href="{{ social_links.github }}" target="_blank"
+                    rel="noopener">GitHub</a>{% endif %}
+                {% if social_links.linkedin %}<a href="{{ social_links.linkedin }}" target="_blank"
+                    rel="noopener">LinkedIn</a>{% endif %}
+                {% if social_links.twitter %}<a href="{{ social_links.twitter }}" target="_blank"
+                    rel="noopener">Twitter</a>{% endif %}
             </div>
             {% endif %}
-            <p>&copy; {{ now.year if now else '2025' }} {{ site_title | default('Portfolio') }}. All rights reserved.</p>
+            <p>&copy; {{ now.year if now else '2025' }} {{ site_title | default('Portfolio') }}. All rights reserved.
+            </p>
         </div>
     </footer>
 
@@ -91,4 +159,5 @@
 
     {% block scripts %}{% endblock %}
 </body>
+
 </html>

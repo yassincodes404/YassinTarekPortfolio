@@ -340,6 +340,59 @@ p {
     line-height: 1.6;
 }
 
+/* ── Project Grid (projects listing page) ─────────────── */
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.project-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.project-card .card-image {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.project-card .card-image-placeholder {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.project-card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.project-card .card-body .tags {
+    margin-top: auto;
+    padding-top: 0.75rem;
+}
+
+@media (max-width: 1024px) {
+    .project-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .project-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ── Tags ──────────────────────────────────────────────── */
 .tags {
     display: flex;
@@ -459,7 +512,7 @@ p {
     overflow: hidden;
     transition: var(--transition);
     backdrop-filter: var(--blur-glass);
-    min-height: 400px;
+    min-height: 340px;
     align-items: stretch;
 }
 
@@ -488,6 +541,7 @@ p {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-height: 280px;
 }
 
 /* Gradient overlay on media for depth */
@@ -503,9 +557,6 @@ p {
 .cursor-card-media iframe,
 .cursor-card-media video,
 .cursor-card-media img {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -529,6 +580,8 @@ p {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    position: relative;
+    z-index: 2;
 }
 
 .cursor-card-title {
@@ -854,6 +907,44 @@ p {
 
 .footer-links a:hover {
     color: var(--accent);
+}
+
+/* ── WhatsApp Floating Button ───────────────────────────── */
+.whatsapp-fab {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #25D366;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    z-index: 900;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.whatsapp-fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    background: #1ebe5a;
+}
+
+.whatsapp-icon svg {
+    width: 26px;
+    height: 26px;
+    fill: #ffffff;
+}
+
+@media (max-width: 768px) {
+    .whatsapp-fab {
+        right: 1rem;
+        bottom: 1rem;
+        width: 52px;
+        height: 52px;
+    }
 }
 
 /* ── Pagination ────────────────────────────────────────── */

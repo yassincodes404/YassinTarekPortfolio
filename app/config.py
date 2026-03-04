@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     # Sentry (optional)
     SENTRY_DSN: str = ""
 
+    # WhatsApp contact (optional) — just the phone number, e.g. 201234567890
+    WHATSAPP_NUMBER: str = ""
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

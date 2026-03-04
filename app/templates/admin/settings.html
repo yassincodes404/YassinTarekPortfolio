@@ -79,6 +79,10 @@
                 <label class="admin-label">Twitter URL</label>
                 <input class="admin-input" x-model="social.twitter" placeholder="https://twitter.com/...">
             </div>
+            <div class="admin-form-group">
+                <label class="admin-label">WhatsApp URL</label>
+                <input class="admin-input" x-model="social.whatsapp" placeholder="https://wa.me/your-number">
+            </div>
         </div>
 
         <!-- Profile Image -->
@@ -155,6 +159,7 @@
             github: socialLinks.github || '',
             linkedin: socialLinks.linkedin || '',
             twitter: socialLinks.twitter || '',
+            whatsapp: socialLinks.whatsapp || '',
         },
         message: '',
         uploadMsg: '',

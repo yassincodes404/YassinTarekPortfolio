@@ -55,12 +55,29 @@ async def get_site_context(db) -> dict:
     except json.JSONDecodeError:
         pass
 
+    # Build WhatsApp link: prefer admin setting, fall back to env var
+    whatsapp_raw = social_links.get("whatsapp", "") or ""
+    if not whatsapp_raw and settings.WHATSAPP_NUMBER:
+        whatsapp_raw = settings.WHATSAPP_NUMBER
+    # Auto-convert raw phone numbers to full wa.me URLs
+    if whatsapp_raw:
+        whatsapp_raw = whatsapp_raw.strip()
+        if whatsapp_raw.startswith("http"):
+            whatsapp_url = whatsapp_raw
+        else:
+            # Strip leading +, spaces, dashes from phone number
+            clean_number = whatsapp_raw.replace(" ", "").replace("-", "").replace("+", "")
+            whatsapp_url = f"https://wa.me/{clean_number}"
+    else:
+        whatsapp_url = ""
+
     return {
         "site_title": all_settings.get("site_title", "Portfolio"),
         "site_description": all_settings.get("site_description", ""),
         "analytics_snippet": all_settings.get("analytics_snippet", ""),
         "css_vars": css_vars,
         "social_links": social_links,
+        "whatsapp_url": whatsapp_url,
         "contact_email": all_settings.get("contact_email", ""),
         "profile_image_url": all_settings.get("profile_image_url", ""),
     }

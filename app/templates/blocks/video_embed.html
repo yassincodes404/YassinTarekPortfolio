@@ -9,8 +9,15 @@
         {% endif %}
         <div class="video-container">
             {% if block.props.embed_url %}
+            {% if 'drive.google.com' in block.props.embed_url %}
+            {% set gdrive_id = block.props.embed_url.split('/d/')[1].split('/')[0] if '/d/' in block.props.embed_url
+            else block.props.embed_url.split('id=')[1].split('&')[0] if 'id=' in block.props.embed_url else '' %}
+            <iframe src="https://drive.google.com/file/d/{{ gdrive_id }}/preview" frameborder="0"
+                allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            {% else %}
             <iframe src="{{ block.props.embed_url }}" frameborder="0" allowfullscreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+            {% endif %}
             {% elif block.props.media_url %}
             <video controls preload="metadata">
                 <source src="{{ block.props.media_url }}" type="video/mp4">

@@ -7,7 +7,9 @@
     <div class="admin-header-actions">
         <a href="/admin/pages" class="admin-btn admin-btn-secondary">← Back</a>
         <button class="admin-btn admin-btn-primary" onclick="savePageBlocks()">Save Page</button>
-        <a href="/{{ page.slug }}" target="_blank" class="admin-btn admin-btn-secondary">Preview</a>
+        {# Home page uses "/" instead of "/home" #}
+        <a href="{% if page.slug == 'home' %}/{% else %}/{{ page.slug }}{% endif %}" target="_blank"
+            class="admin-btn admin-btn-secondary">Preview</a>
     </div>
 </div>
 
@@ -48,6 +50,10 @@
                 </div>
             </div>
         </template>
+        <p style="margin-top:1rem;font-size:0.8rem;color:var(--admin-text-muted);">
+            Use the ↑ and ↓ buttons on each block to change its order on the page, then click <strong>Save Page</strong>
+            and use Preview to see the updated layout.
+        </p>
     </div>
 
     <!-- Inspector -->

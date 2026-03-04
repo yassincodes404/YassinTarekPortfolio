@@ -106,7 +106,7 @@ async def lifespan(app: FastAPI):
             "site_description": "Full-Stack Developer Portfolio",
             "profile_photo_id": "",
             "contact_email": "",
-            "social_links": json.dumps({"github": "", "linkedin": "", "twitter": ""}),
+            "social_links": json.dumps({"github": "", "linkedin": "", "twitter": "", "whatsapp": ""}),
             "analytics_snippet": "",
             "css_vars": json.dumps({
                 "accent_color": "#6366f1",

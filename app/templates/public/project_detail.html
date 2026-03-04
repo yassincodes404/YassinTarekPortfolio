@@ -54,7 +54,16 @@
 
         {% if project.video_embed_url %}
         <div class="video-container" style="margin:3rem 0;">
-            <iframe src="{{ project.video_embed_url }}" frameborder="0" allowfullscreen></iframe>
+            {% if 'drive.google.com' in project.video_embed_url %}
+            {% set gdrive_id = project.video_embed_url.split('/d/')[1].split('/')[0] if '/d/' in project.video_embed_url
+            else project.video_embed_url.split('id=')[1].split('&')[0] if 'id=' in project.video_embed_url else '' %}
+            <iframe src="https://drive.google.com/file/d/{{ gdrive_id }}/preview" frameborder="0"
+                allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            {% else %}
+            <iframe src="{{ project.video_embed_url }}" frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+            {% endif %}
         </div>
         {% elif project.video_media %}
         <div class="video-container" style="margin:3rem 0;">
